@@ -9,6 +9,7 @@ public class Network {
 	private double modifi = 0.01;
 	private double l_rate = 0.01;
 	private double moment = 0.01;
+	private double leak_r = 0.01;
 	
 	private int[] widths;
 	private int depth;
@@ -125,7 +126,7 @@ public class Network {
 	
 	private double ReLU(double x, boolean derivative) {
 		if(derivative)
-			return (x > 0)? 1 : 0.01;
+			return (x > 0)? 1 : leak_r;
 		else
 			return (x > 0)? x : 0;
 	}
