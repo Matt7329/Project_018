@@ -4,12 +4,12 @@ import java.util.Random;
 
 public class Network {
 	
-	Random r = new Random();
+	Random r = new Random(0);
 	
-	private double modifi = 0.01;
-	private double l_rate = 0.01;
-	private double moment = 0.01;
-	private double leak_r = 0.01;
+	private double modifi = .01;
+	private double l_rate = .01;
+	private double moment = .01;
+	private double leak_r = .01;
 	
 	private int[] widths;
 	private int depth;
@@ -22,7 +22,6 @@ public class Network {
 	public Network(int[] widths) {
 		this.widths = widths;
 		depth = widths.length;
-		
 		weights = new double[depth][][];
 		weightsdiff = new double[depth][][];
 		bias = new double[depth][];
@@ -44,18 +43,33 @@ public class Network {
 	}
 	
 	private void test() {
-		double[] in = new double[]{.5f};
-		double[] out = new double[]{Math.sin(in[0])};
-		for(int i = 0; i < 1000000; i++) {
-			in = new double[]{r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble()};
-			out = new double[]{func(in[0]), func(in[1]), func(in[2]), func(in[3]), func(in[4])};
+		long start = System.nanoTime();
+		
+		int epochs = 1000000;
+		int inputs = widths[0];
+		int outputs = widths[depth - 1];
+		
+		double[] in = new double[inputs];
+		double[] out = new double[outputs];
+		
+		for(int i = 0; i < epochs; i++) {
+			for(int j = 0; j < inputs; j++) {
+				in[j] = r.nextDouble();
+			}
+			for(int j = 0; j < outputs; j++) {
+				out[j] = func(in[j]);
+			}
 			train(in, out);
 		}
-		in = new double[]{r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble()};
+		for(int j = 0; j < inputs; j++) {
+			in[j] = r.nextDouble();
+		}
 		out = forwardPass(in);
 		for(int i = 0; i < out.length; i++) {
 			System.out.println(out[i]+" Expected: "+func(in[i]));
 		}
+		
+		System.out.println("Time: "+ (System.nanoTime() - start) / 1e9f);
 	}
 
 	public double[] forwardPass(double[] x) {
@@ -89,13 +103,9 @@ public class Network {
 		for (int d = depth - 1; d > 0; d--) {
 			SignalError[d] = new double[getWidth(d)];
 			for (int w = 0; w < getWidth(d); w++) {
-				double Sum = 0;
-				if(d == depth - 1) {
-					Sum = (y[w] - h[d][w]);
-				}else {
-					for (int w2 = 0; w2 < getWidth(d+1); w2++) {
-						Sum += weights[d+1][w2][w] * SignalError[d+1][w2];
-					}
+				double Sum = (d == depth - 1)? (y[w] - h[d][w]) : 0;
+				for (int w2 = 0; w2 < getWidth(d+1); w2++) {
+					Sum += weights[d+1][w2][w] * SignalError[d+1][w2];
 				}
 				SignalError[d][w] = Sum * ActivationFunction(h[d][w], true);
 			}
@@ -113,7 +123,7 @@ public class Network {
 	}
 	
 	public int getWidth(int d) {
-		return (d < 0 || d > depth - 1)? 0 : this.widths[d];
+		return (d < 0 || d > depth - 1)? 0 : widths[d];
 	}
 
 	private double randomModified() {
@@ -132,11 +142,11 @@ public class Network {
 	}
 	
 	public double func(double in) {
-		return in + .1;
+		return Math.sin(in);
 	}
 	
 	public static void main(String[] args) {
-		Network n = new Network(new int[]{5, 10, 5});
+		Network n = new Network(new int[]{1, 2, 1});
 		n.test();
 	}
 }
